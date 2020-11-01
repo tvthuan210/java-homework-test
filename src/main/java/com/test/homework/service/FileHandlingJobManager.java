@@ -1,6 +1,6 @@
 package com.test.homework.service;
 
-import com.test.homework.JobCompletionNotificationListener;
+import com.test.homework.file.FileParsingCompletionListener;
 import com.test.homework.model.Order;
 import com.test.homework.model.OrderDTO;
 import com.test.homework.processor.OrderProcessor;
@@ -38,7 +38,7 @@ public class FileHandlingJobManager extends JobManager {
 
   @Bean
   public Job readCSVFilesJob(@Qualifier("testExecutor") TaskExecutor taskExecutor,
-      JobCompletionNotificationListener listener) throws IOException {
+      FileParsingCompletionListener listener) throws IOException {
     return jobBuilderFactory
         .get(Constants.CsvJob.JOB_NAME)
         .incrementer(new RunIdIncrementer())

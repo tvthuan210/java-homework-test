@@ -2,16 +2,16 @@ package com.test.homework.service;
 
 import com.test.homework.model.Order;
 import com.test.homework.model.OrderDetailDTO;
-import com.test.homework.processor.OrderDetailsResourcePartitioner;
 import com.test.homework.processor.OrderDetailProcessor;
+import com.test.homework.processor.OrderDetailsResourcePartitioner;
 import com.test.homework.repository.OrderRepository;
 import com.test.homework.utils.Constants;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.database.JpaPagingItemReader;
-import org.springframework.batch.item.file.FlatFileHeaderCallback;
 import org.springframework.batch.item.file.FlatFileItemWriter;
 import org.springframework.batch.item.file.transform.BeanWrapperFieldExtractor;
 import org.springframework.batch.item.file.transform.DelimitedLineAggregator;
@@ -22,17 +22,24 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.integration.annotation.ServiceActivator;
+import org.springframework.integration.channel.DirectChannel;
+import org.springframework.messaging.MessageChannel;
 
-import java.io.IOException;
-import java.io.Writer;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 @Configuration
 public class OrderTransformJobManager extends JobManager {
 
   private OrderRepository orderRepository;
+
+  @Bean
+  public MessageChannel orderTransformChannel() {
+    return new DirectChannel();
+  }
 
   @Autowired
   public void setOrderRepository(OrderRepository orderRepository) {
@@ -109,5 +116,12 @@ public class OrderTransformJobManager extends JobManager {
       }
     });
     return writer;
+  }
+
+  @ServiceActivator(inputChannel = "orderTransformChannel")
+  public void launchOrderTransformJob() throws Exception {
+    JobParametersBuilder jobParametersBuilder = new JobParametersBuilder();
+    jobParametersBuilder.addDate(Constants.JobAttribute.KEY, new Date());
+    simpleJobLauncher(null).run(orderTransformJob(null), jobParametersBuilder.toJobParameters());
   }
 }

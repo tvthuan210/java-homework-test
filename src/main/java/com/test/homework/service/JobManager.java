@@ -7,9 +7,9 @@ import org.springframework.batch.core.launch.support.SimpleJobLauncher;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.integration.launch.JobLaunchingGateway;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.task.SyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
@@ -23,10 +23,10 @@ public class JobManager {
   protected EntityManagerFactory entityManagerFactory;
 
   @Bean
-  public JobLauncher simpleJobLauncher() {
+  public JobLauncher simpleJobLauncher(@Qualifier("testExecutor") TaskExecutor taskExecutor) {
     SimpleJobLauncher simpleJobLauncher = new SimpleJobLauncher();
     simpleJobLauncher.setJobRepository(jobRepository);
-    simpleJobLauncher.setTaskExecutor(new SyncTaskExecutor());
+    simpleJobLauncher.setTaskExecutor(taskExecutor);
     return simpleJobLauncher;
   }
 
